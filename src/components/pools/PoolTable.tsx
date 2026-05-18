@@ -20,7 +20,7 @@ interface PoolTableProps {
   onSort: (field: SortField) => void
 }
 
-function SortIcon({ field, active, order }: { field: string; active: boolean; order: string }) {
+function SortIcon({ active, order }: { active: boolean; order: string }) {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" className={`ml-1 inline h-3.5 w-3.5 ${active ? 'text-indigo-400' : 'text-gray-600'}`}>
       {active && order === 'desc' ? (
@@ -67,19 +67,19 @@ export default function PoolTable({ pools, loading, sortField, sortOrder, onSort
               className="cursor-pointer px-4 py-3 text-right text-xs font-medium text-gray-500 hover:text-white"
               onClick={() => onSort('liquidity')}
             >
-              Liquidity <SortIcon field="liquidity" active={sortField === 'liquidity'} order={sortOrder} />
+              Liquidity <SortIcon active={sortField === 'liquidity'} order={sortOrder} />
             </th>
             <th
               className="cursor-pointer px-4 py-3 text-right text-xs font-medium text-gray-500 hover:text-white"
               onClick={() => onSort('volume')}
             >
-              Volume 24h <SortIcon field="volume" active={sortField === 'volume'} order={sortOrder} />
+              Volume 24h <SortIcon active={sortField === 'volume'} order={sortOrder} />
             </th>
             <th
               className="cursor-pointer px-4 py-3 text-right text-xs font-medium text-gray-500 hover:text-white"
               onClick={() => onSort('priceChange')}
             >
-              24h % <SortIcon field="priceChange" active={sortField === 'priceChange'} order={sortOrder} />
+              24h % <SortIcon active={sortField === 'priceChange'} order={sortOrder} />
             </th>
           </tr>
         </thead>

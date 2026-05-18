@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 interface SearchBarProps {
   value: string
@@ -11,10 +11,6 @@ interface SearchBarProps {
 export default function SearchBar({ value, onChange, placeholder = 'Search tokens...' }: SearchBarProps) {
   const [localValue, setLocalValue] = useState(value)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    setLocalValue(value)
-  }, [value])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value

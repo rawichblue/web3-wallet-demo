@@ -3,8 +3,9 @@ import type { Holding } from '@/types/portfolio'
 import { formatPrice, formatTokenAmount, getChangeBg } from '@/lib/utils/format'
 
 interface BalanceCardProps {
-  holdings: Holding[]
-  loading?: boolean
+  holdings:  Holding[]
+  loading?:  boolean
+  showZero?: boolean  // when true, zero-balance rows render with a "dust" style
 }
 
 function SkeletonRow() {
@@ -23,8 +24,10 @@ function SkeletonRow() {
   )
 }
 
-export default function BalanceCard({ holdings, loading }: BalanceCardProps) {
-  const total = holdings.reduce((sum, h) => sum + h.valueUsd, 0)
+export default function BalanceCard({ holdings, loading, showZero }: BalanceCardProps) {
+  const total = holdings
+    .filter((h) => !h.isZeroBalance)
+    .reduce((sum, h) => sum + h.valueUsd, 0)
 
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
@@ -40,24 +43,53 @@ export default function BalanceCard({ holdings, loading }: BalanceCardProps) {
       <div className="divide-y divide-gray-800">
         {loading
           ? Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
-          : holdings.map((h) => (
-              <div key={h.tokenAddress} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-800/30 transition-colors">
+          : holdings.length === 0
+            ? (
+              <div className="py-10 text-center">
+                <p className="text-sm text-gray-500">No token holdings found</p>
+              </div>
+            )
+            : holdings.map((h) => (
+              <div
+                key={h.tokenAddress}
+                className={`flex items-center gap-4 px-5 py-4 transition-colors ${
+                  h.isZeroBalance
+                    ? 'opacity-40 hover:opacity-60'
+                    : 'hover:bg-gray-800/30'
+                }`}
+              >
                 {h.logoUrl ? (
                   <Image src={h.logoUrl} alt={h.symbol} width={36} height={36} className="rounded-full" />
                 ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-700 text-xs font-bold text-white">
-                    {h.symbol.slice(0, 2)}
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-700 text-xs font-bold text-white flex-shrink-0">
+                    {h.symbol.slice(0, 2).toUpperCase()}
                   </div>
                 )}
+
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{h.symbol}</p>
-                  <p className="text-xs text-gray-500">{formatTokenAmount(h.balanceFormatted)} {h.symbol}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-white">{h.symbol}</p>
+                    {h.isZeroBalance && showZero && (
+                      <span className="rounded bg-gray-700 px-1 py-0.5 text-xs text-gray-500">empty</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">{h.name}</p>
+                  {!h.isZeroBalance && (
+                    <p className="text-xs text-gray-600">{formatTokenAmount(h.balanceFormatted)} {h.symbol}</p>
+                  )}
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">{formatPrice(h.valueUsd)}</p>
-                  <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${getChangeBg(h.change24h)}`}>
-                    {h.change24h >= 0 ? '+' : ''}{h.change24h.toFixed(2)}%
-                  </span>
+
+                <div className="text-right flex-shrink-0">
+                  {h.isZeroBalance ? (
+                    <p className="text-sm text-gray-600">—</p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-white">{formatPrice(h.valueUsd)}</p>
+                      <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${getChangeBg(h.change24h)}`}>
+                        {h.change24h >= 0 ? '+' : ''}{h.change24h.toFixed(2)}%
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

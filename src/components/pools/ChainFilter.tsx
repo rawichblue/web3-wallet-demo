@@ -3,11 +3,14 @@
 import type { ChainFilter } from '@/types/pool'
 
 const FILTERS: { label: string; value: ChainFilter; color: string }[] = [
-  { label: 'All Chains', value: 'all', color: '#6366f1' },
-  { label: 'Ethereum', value: 'ethereum', color: '#627EEA' },
-  { label: 'BNB Chain', value: 'bsc', color: '#F3BA2F' },
-  { label: 'Polygon', value: 'polygon', color: '#8247E5' },
-  { label: 'Arbitrum', value: 'arbitrum', color: '#28A0F0' },
+  { label: 'All Chains', value: 'all',       color: '#6366f1' },
+  { label: 'Ethereum',   value: 'ethereum',  color: '#627EEA' },
+  { label: 'BNB Chain',  value: 'bsc',       color: '#F3BA2F' },
+  { label: 'Polygon',    value: 'polygon',   color: '#8247E5' },
+  { label: 'Arbitrum',   value: 'arbitrum',  color: '#28A0F0' },
+  { label: 'Base',       value: 'base',      color: '#0052FF' },
+  { label: 'Avalanche',  value: 'avalanche', color: '#E84142' },
+  { label: 'zkSync Era', value: 'zksync',    color: '#8C8DFC' },
 ]
 
 interface ChainFilterProps {
@@ -29,7 +32,7 @@ export default function ChainFilterBar({ active, onChange }: ChainFilterProps) {
           }`}
         >
           {f.value !== 'all' && (
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: f.color }} />
+            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: f.color }} />
           )}
           {f.label}
         </button>

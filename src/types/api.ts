@@ -5,16 +5,16 @@ export interface CoinGeckoMarketItem {
   symbol: string
   name: string
   image: string
-  current_price: number
-  market_cap: number
-  market_cap_rank: number
-  total_volume: number
-  price_change_percentage_24h: number
-  price_change_percentage_7d_in_currency?: number
-  circulating_supply: number
+  current_price: number | null
+  market_cap: number | null
+  market_cap_rank: number | null
+  total_volume: number | null
+  price_change_percentage_24h: number | null   // CoinGecko returns null for new / low-data tokens
+  price_change_percentage_7d_in_currency?: number | null
+  circulating_supply: number | null
   total_supply: number | null
-  ath: number
-  ath_date: string
+  ath: number | null
+  ath_date: string | null
 }
 
 export interface CoinGeckoCoinDetail {
@@ -22,6 +22,7 @@ export interface CoinGeckoCoinDetail {
   symbol: string
   name: string
   market_cap_rank: number
+  platforms: Record<string, string> // chain → contract address
   image: {
     thumb: string
     small: string
@@ -120,7 +121,7 @@ export interface AlchemyTransfer {
   to: string | null
   value: number
   asset: string | null
-  metadata: AlchemyTransferMetadata
+  metadata: AlchemyTransferMetadata | null
   category: string
 }
 
@@ -132,4 +133,15 @@ export interface AlchemyTransfersResponse {
 
 export interface AlchemyGasPriceResponse {
   result: string
+}
+
+export interface AlchemyTokenMetadata {
+  decimals: number | null
+  logo: string | null
+  name: string | null
+  symbol: string | null
+}
+
+export interface AlchemyTokenMetadataResponse {
+  result: AlchemyTokenMetadata
 }

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const ALCHEMY_NETWORKS: Record<number, (key: string) => string> = {
-  1:     (key) => `https://eth-mainnet.g.alchemy.com/v2/${key}`,
-  56:    ()    => 'https://bsc-dataseed.binance.org',
-  137:   (key) => `https://polygon-mainnet.g.alchemy.com/v2/${key}`,
-  42161: (key) => `https://arb-mainnet.g.alchemy.com/v2/${key}`,
+  1:     (key) => `https://eth-mainnet.g.alchemy.com/v2/${key}`,     // Ethereum
+  56:    (key) => `https://bnb-mainnet.g.alchemy.com/v2/${key}`,     // BNB Chain
+  137:   (key) => `https://polygon-mainnet.g.alchemy.com/v2/${key}`, // Polygon
+  42161: (key) => `https://arb-mainnet.g.alchemy.com/v2/${key}`,     // Arbitrum
+  8453:  (key) => `https://base-mainnet.g.alchemy.com/v2/${key}`,    // Base
+  43114: (key) => `https://avax-mainnet.g.alchemy.com/v2/${key}`,    // Avalanche
+  324:   (key) => `https://zksync-mainnet.g.alchemy.com/v2/${key}`,  // zkSync Era
 }
 
 export async function POST(request: NextRequest) {
@@ -16,7 +19,9 @@ export async function POST(request: NextRequest) {
   const url = builder(key)
 
   // Strip chainId from the JSON-RPC payload before forwarding
-  const { chainId: _ignored, ...rpcBody } = body
+  const rpcBody = Object.fromEntries(
+    Object.entries(body).filter(([k]) => k !== 'chainId')
+  )
 
   try {
     const res = await fetch(url, {

@@ -1,17 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
 import { injected, walletConnect } from 'wagmi/connectors'
-import { mainnet, polygon, arbitrum, bsc } from 'wagmi/chains'
+import {
+  mainnet, bsc, polygon, arbitrum,
+  base, avalanche, zksync,
+} from 'wagmi/chains'
 
-const WC_PROJECT_ID = '71d2d52ccb0fb123c7af231ee206c308'
+const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? ''
 
 const CHAINS = [
-  { chain: mainnet, label: 'Ethereum', color: '#627EEA' },
-  { chain: polygon, label: 'Polygon', color: '#8247E5' },
-  { chain: arbitrum, label: 'Arbitrum', color: '#28A0F0' },
-  { chain: bsc, label: 'BNB Chain', color: '#F3BA2F' },
+  { chain: mainnet,   label: 'Ethereum',   color: '#627EEA' },
+  { chain: bsc,       label: 'BNB Chain',  color: '#F3BA2F' },
+  { chain: polygon,   label: 'Polygon',    color: '#8247E5' },
+  { chain: arbitrum,  label: 'Arbitrum',   color: '#28A0F0' },
+  { chain: base,      label: 'Base',       color: '#0052FF' },
+  { chain: avalanche, label: 'Avalanche',  color: '#E84142' },
+  { chain: zksync,    label: 'zkSync Era', color: '#8C8DFC' },
 ]
 
 export default function WalletButton() {
@@ -49,6 +56,10 @@ export default function WalletButton() {
   function handleConnectWC() {
     setError(null)
     setModalOpen(false)
+    if (!WC_PROJECT_ID) {
+      setError('NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set in .env.local')
+      return
+    }
     connect(
       { connector: walletConnect({ projectId: WC_PROJECT_ID }) },
       {
@@ -88,7 +99,7 @@ export default function WalletButton() {
               onClick={handleConnectInjected}
               className="flex w-full items-center gap-3 px-4 py-3 text-sm text-white hover:bg-gray-800 transition-colors"
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" className="h-6 w-6" />
+              <Image src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="" width={24} height={24} unoptimized />
               <span>MetaMask</span>
               <span className="ml-auto text-xs text-gray-500">Extension</span>
             </button>

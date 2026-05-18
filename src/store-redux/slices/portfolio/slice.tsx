@@ -26,13 +26,16 @@ const portfolioSlice = createSlice({
 
     builder.addCase(fetchTransactionsService.pending, (state) => {
       state.loadingTx = true
+      state.errorTx = null
     })
     builder.addCase(fetchTransactionsService.fulfilled, (state, action) => {
       state.loadingTx = false
       state.transactions = action.payload
+      state.errorTx = null
     })
-    builder.addCase(fetchTransactionsService.rejected, (state) => {
+    builder.addCase(fetchTransactionsService.rejected, (state, action) => {
       state.loadingTx = false
+      state.errorTx = action.error.message ?? 'Failed to fetch transactions'
     })
   },
 })

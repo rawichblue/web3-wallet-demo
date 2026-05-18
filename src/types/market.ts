@@ -14,6 +14,7 @@ export interface Token {
   ath: number
   ath_date: string
   sparkline?: number[]
+  contractAddress?: string | null // undefined = not fetched yet, null = fetched but no ETH address, string = address
 }
 
 export interface PricePoint {

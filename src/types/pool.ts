@@ -31,6 +31,14 @@ export interface Pool {
   createdAt: string
 }
 
-export type ChainFilter = 'all' | 'ethereum' | 'bsc' | 'polygon' | 'arbitrum'
+export type ChainFilter =
+  | 'all'
+  | 'ethereum'
+  | 'bsc'
+  | 'polygon'
+  | 'arbitrum'
+  | 'base'
+  | 'avalanche'
+  | 'zksync'
 export type SortField = 'liquidity' | 'volume' | 'priceChange'
 export type SortOrder = 'asc' | 'desc'

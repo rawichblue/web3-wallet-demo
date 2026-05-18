@@ -8,7 +8,8 @@ export interface StateProps {
   summary: PortfolioSummary | null
   loading: boolean
   loadingTx: boolean
-  error: string | null
+  error: string | null    // fetchPortfolio
+  errorTx: string | null  // fetchTransactions
 }
 
 export const initialState: StateProps = {
@@ -18,4 +19,5 @@ export const initialState: StateProps = {
   loading: false,
   loadingTx: false,
   error: null,
+  errorTx: null,
 }

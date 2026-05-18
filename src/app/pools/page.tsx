@@ -7,10 +7,11 @@ import { poolsSelector, fetchPoolsService, setChainFilter, setSortField, toggleS
 import type { ChainFilter, SortField } from '@/types/pool'
 import ChainFilterBar from '@/components/pools/ChainFilter'
 import PoolTable from '@/components/pools/PoolTable'
+import ApiError from '@/components/ui/ApiError'
 
 export default function PoolsPage() {
   const dispatch = useAppDispatch()
-  const { pools, chainFilter, sortField, sortOrder, loading } = useSelector(poolsSelector)
+  const { pools, chainFilter, sortField, sortOrder, loading, error } = useSelector(poolsSelector)
 
   useEffect(() => {
     dispatch(fetchPoolsService(chainFilter))
@@ -49,19 +50,16 @@ export default function PoolsPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Liquidity Pools</h1>
         <p className="mt-1 text-sm text-gray-400">
-          {pools.length > 0 ? `${pools.length} pools across all chains` : 'Loading...'}
+          {pools.length > 0 ? `${pools.length} pools across all chains` : loading ? 'Loading...' : ''}
         </p>
       </div>
 
       <ChainFilterBar active={chainFilter} onChange={handleChainChange} />
 
-      <PoolTable
-        pools={sorted}
-        loading={loading}
-        sortField={sortField}
-        sortOrder={sortOrder}
-        onSort={handleSort}
-      />
+      {error
+        ? <ApiError message={error} onRetry={() => dispatch(fetchPoolsService(chainFilter))} />
+        : <PoolTable pools={sorted} loading={loading} sortField={sortField} sortOrder={sortOrder} onSort={handleSort} />
+      }
     </div>
   )
 }

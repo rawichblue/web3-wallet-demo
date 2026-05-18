@@ -47,15 +47,34 @@ export default function AreaChartInner({ data, isPositive }: AreaChartInnerProps
 
   const color = isPositive ? '#34d399' : '#f87171'
 
+  // CoinGecko returns hourly data for periods <= 90 days (free plan).
+  // Detect hourly vs daily by point density: >14 points for 7 days = hourly.
+  const isHourly = data.length > 14
+
   const chartData = data.map((p) => ({
     price: p.price,
-    date: new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    date: isHourly
+      ? new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : new Date(p.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  }))
+
+  // For hourly data, show one tick per day (every 24 points) to avoid duplicate date labels.
+  // For daily data, use recharts' built-in preserveStartEnd.
+  const tickInterval: number | 'preserveStartEnd' = isHourly
+    ? Math.max(1, Math.round(data.length / 7) - 1)
+    : 'preserveStartEnd'
+
+  // Deduplicate: keep only the first occurrence of each date label so X-axis never repeats.
+  const seen = new Set<string>()
+  const dedupedData = chartData.map((d) => ({
+    ...d,
+    date: seen.has(d.date) ? '' : (seen.add(d.date), d.date),
   }))
 
   return (
     <div ref={containerRef} className="h-full w-full">
-      {size && chartData.length > 0 && (
-        <AreaChart width={size.width} height={size.height} data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+      {size && dedupedData.length > 0 && (
+        <AreaChart width={size.width} height={size.height} data={dedupedData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.25} />
@@ -68,7 +87,7 @@ export default function AreaChartInner({ data, isPositive }: AreaChartInnerProps
             tick={{ fill: '#6b7280', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
-            interval="preserveStartEnd"
+            interval={tickInterval}
           />
           <YAxis
             domain={['auto', 'auto']}

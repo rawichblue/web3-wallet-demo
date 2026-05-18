@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux'
 import { useAppDispatch } from '@/store-redux/store'
 import { marketSelector, fetchPriceHistoryService } from '@/store-redux/slices/market'
 import { formatPrice } from '@/lib/utils/format'
-import type { PricePoint } from '@/types/market'
 
 const PERIODS = [
   { label: '7D', days: 7 },
@@ -22,17 +21,12 @@ interface PriceChartProps {
   change24h: number
 }
 
-interface AreaChartInnerProps {
-  data: PricePoint[]
-  isPositive: boolean
-}
-
 const AreaChartInner = dynamic(() => import('./AreaChartInner'), { ssr: false })
 
 export default function PriceChart({ tokenId, tokenName, currentPrice, change24h }: PriceChartProps) {
   const dispatch = useAppDispatch()
   const { priceHistory, loadingPriceHistory } = useSelector(marketSelector)
-  const [activePeriod, setActivePeriod] = useState<{ label: string; days: number }>(PERIODS[1]!)
+  const [activePeriod, setActivePeriod] = useState<{ label: string; days: number }>(PERIODS[0]!)
 
   useEffect(() => {
     dispatch(fetchPriceHistoryService({ tokenId, days: activePeriod.days }))

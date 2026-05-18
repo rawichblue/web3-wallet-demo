@@ -1,15 +1,16 @@
 export interface Holding {
-  tokenAddress: string
-  symbol: string
-  name: string
-  decimals: number
-  balance: string
-  balanceFormatted: number
-  priceUsd: number
-  valueUsd: number
-  change24h: number
-  logoUrl?: string
-  chainId: string
+  tokenAddress:    string
+  symbol:          string
+  name:            string
+  decimals:        number
+  balance:         string   // raw hex balance from Alchemy
+  balanceFormatted: number  // balance / 10^decimals
+  priceUsd:        number
+  valueUsd:        number
+  change24h:       number
+  logoUrl?:        string
+  chainId:         string
+  isZeroBalance:   boolean  // true = ever held but now empty (history / dust)
 }
 
 export interface Transaction {

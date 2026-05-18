@@ -6,66 +6,49 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useSelector } from 'react-redux'
 import { useAppDispatch } from '@/store-redux/store'
-import { marketSelector, fetchTokensService } from '@/store-redux/slices/market'
+import {
+  marketSelector,
+  fetchTokensService,
+  fetchTokenDetailService,
+  fetchTokenDexInfoService,
+} from '@/store-redux/slices/market'
 import { formatPrice, formatLargeNumber, getChangeBg } from '@/lib/utils/format'
 import PriceChart from '@/components/dashboard/PriceChart'
-import type { TokenDexInfo } from '@/types/market'
-import { MOCK_TOKENS } from '@/mock/tokens'
+import ApiError from '@/components/ui/ApiError'
 
 interface TokenStat {
   label: string
   value: string
 }
 
-// Mock DEX listings for token detail
-const MOCK_DEX_INFO: TokenDexInfo[] = [
-  {
-    dexId: 'uniswap',
-    dexName: 'Uniswap V3',
-    pairAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
-    baseToken: { address: '0xc02aa', name: 'Wrapped Ether', symbol: 'WETH' },
-    quoteToken: { address: '0xa0b869', name: 'USD Coin', symbol: 'USDC' },
-    priceUsd: '3420.10',
-    volume24h: 890000000,
-    liquidity: 2100000000,
-    chainId: 'ethereum',
-  },
-  {
-    dexId: 'sushiswap',
-    dexName: 'SushiSwap',
-    pairAddress: '0x397ff1542f962076d0bfe58ea045ffa2d347aca0',
-    baseToken: { address: '0xc02aa', name: 'Wrapped Ether', symbol: 'WETH' },
-    quoteToken: { address: '0xa0b869', name: 'USD Coin', symbol: 'USDC' },
-    priceUsd: '3419.80',
-    volume24h: 42000000,
-    liquidity: 95000000,
-    chainId: 'ethereum',
-  },
-  {
-    dexId: 'pancakeswap',
-    dexName: 'PancakeSwap',
-    pairAddress: '0xa34315f1ef49392387dd143f4578083a9bd33d16',
-    baseToken: { address: '0x2170ed', name: 'Ethereum', symbol: 'ETH' },
-    quoteToken: { address: '0xbb4cdb', name: 'Wrapped BNB', symbol: 'WBNB' },
-    priceUsd: '3421.00',
-    volume24h: 68000000,
-    liquidity: 195000000,
-    chainId: 'bsc',
-  },
-]
-
 export default function TokenDetailPage() {
-  const params = useParams()
-  const router = useRouter()
+  const params   = useParams()
+  const router   = useRouter()
   const dispatch = useAppDispatch()
-  const { tokens, loading } = useSelector(marketSelector)
+  const { tokens, loading, dexInfo, loadingDexInfo, errorDexInfo } = useSelector(marketSelector)
 
+  const tokenId = params.id as string
+  const token   = tokens.find((t) => t.id === tokenId)
+
+  // Load token list if empty, then fetch full detail for contractAddress
   useEffect(() => {
     if (tokens.length === 0) dispatch(fetchTokensService())
   }, [dispatch, tokens.length])
 
-  const tokenId = params.id as string
-  const token = tokens.find((t) => t.id === tokenId) ?? MOCK_TOKENS.find((t) => t.id === tokenId)
+  useEffect(() => {
+    if (!token) return
+    // If we don't have contractAddress yet, fetch full token detail
+    if (token.contractAddress === undefined) {
+      dispatch(fetchTokenDetailService(tokenId))
+    }
+  }, [dispatch, token, tokenId])
+
+  // Fetch DEX info once contractAddress is available
+  useEffect(() => {
+    if (token?.contractAddress) {
+      dispatch(fetchTokenDexInfoService(token.contractAddress))
+    }
+  }, [dispatch, token?.contractAddress])
 
   if (loading && tokens.length === 0) {
     return (
@@ -87,7 +70,9 @@ export default function TokenDetailPage() {
     )
   }
 
-  const bestPrice = Math.max(...MOCK_DEX_INFO.map((d) => parseFloat(d.priceUsd)))
+  const bestPrice = dexInfo.length > 0
+    ? Math.max(...dexInfo.map((d) => parseFloat(d.priceUsd)))
+    : 0
 
   return (
     <div className="space-y-6">
@@ -134,9 +119,9 @@ export default function TokenDetailPage() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {(
           [
-            { label: 'Market Cap', value: formatLargeNumber(token.market_cap) },
-            { label: 'Volume 24h', value: formatLargeNumber(token.total_volume) },
-            { label: 'All-Time High', value: formatPrice(token.ath) },
+            { label: 'Market Cap',         value: formatLargeNumber(token.market_cap) },
+            { label: 'Volume 24h',         value: formatLargeNumber(token.total_volume) },
+            { label: 'All-Time High',      value: formatPrice(token.ath) },
             { label: 'Circulating Supply', value: `${(token.circulating_supply / 1_000_000).toFixed(1)}M ${token.symbol.toUpperCase()}` },
           ] satisfies TokenStat[]
         ).map((stat) => (
@@ -156,7 +141,38 @@ export default function TokenDetailPage() {
               <span key={h} className="text-xs text-gray-500">{h}</span>
             ))}
           </div>
-          {MOCK_DEX_INFO.map((dex) => {
+
+          {loadingDexInfo && (
+            <div className="animate-pulse">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="grid grid-cols-4 gap-4 border-b border-gray-800/50 px-5 py-4">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <div key={j} className="h-4 rounded bg-gray-800" />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loadingDexInfo && errorDexInfo && (
+            <div className="p-4">
+              <ApiError
+                message={errorDexInfo}
+                compact
+                onRetry={() => token.contractAddress && dispatch(fetchTokenDexInfoService(token.contractAddress))}
+              />
+            </div>
+          )}
+
+          {!loadingDexInfo && !errorDexInfo && dexInfo.length === 0 && (
+            <div className="py-10 text-center">
+              <p className="text-sm text-gray-500">
+                {token.contractAddress ? 'No DEX listings found' : 'No contract address available for this token'}
+              </p>
+            </div>
+          )}
+
+          {!loadingDexInfo && !errorDexInfo && dexInfo.map((dex) => {
             const isBest = parseFloat(dex.priceUsd) === bestPrice
             return (
               <div key={dex.pairAddress} className="grid grid-cols-4 items-center border-b border-gray-800/50 px-5 py-4 hover:bg-gray-800/30 transition-colors last:border-0">
